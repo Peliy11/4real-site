@@ -1,4 +1,4 @@
-import { kv } from '@vercel/kv';
+import supabase from '../_lib.js';
 
 function checkAuth(req) {
   const auth = req.headers.authorization || '';
@@ -14,32 +14,39 @@ export default async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(200).end();
 
   const { id } = req.query;
-  const script = await kv.get(`script:${id}`);
-  if (!script) return res.status(404).json({ error: 'Not found' });
 
   if (req.method === 'GET') {
-    return res.json(script);
+    const { data, error } = await supabase.from('scripts').select('*').eq('id', id).single();
+    if (error || !data) return res.status(404).json({ error: 'Not found' });
+    return res.json(data);
   }
 
   if (req.method === 'PUT') {
     if (!checkAuth(req)) return res.status(401).json({ error: 'Unauthorized' });
+
+    const { data: existing } = await supabase.from('scripts').select('*').eq('id', id).single();
+    if (!existing) return res.status(404).json({ error: 'Not found' });
+
     const { name, description, code } = req.body;
+    const update = {};
+
     if (name) {
-      await kv.del(`slug:${script.slug}`);
-      script.name = name;
-      script.slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
-      await kv.set(`slug:${script.slug}`, id);
+      update.name = name;
+      update.slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
     }
-    if (description !== undefined) script.description = description;
-    if (code) script.code = code;
-    await kv.set(`script:${id}`, script);
+    if (description !== undefined) update.description = description;
+    if (code) update.code = code;
+
+    const { error } = await supabase.from('scripts').update(update).eq('id', id);
+    if (error) return res.status(500).json({ error: error.message });
     return res.json({ success: true });
   }
 
   if (req.method === 'DELETE') {
     if (!checkAuth(req)) return res.status(401).json({ error: 'Unauthorized' });
-    await kv.del(`script:${id}`);
-    await kv.del(`slug:${script.slug}`);
+
+    const { error } = await supabase.from('scripts').delete().eq('id', id);
+    if (error) return res.status(500).json({ error: error.message });
     return res.json({ success: true });
   }
 

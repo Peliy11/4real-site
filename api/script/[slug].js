@@ -1,22 +1,25 @@
-import { kv } from '@vercel/kv';
+import supabase from '../_lib.js';
 
 export default async function handler(req, res) {
+  if (req.method !== 'GET') return res.status(405).end();
+
   const { slug } = req.query;
-  const id = await kv.get(`slug:${slug}`);
 
-  if (!id) {
+  const { data: script, error } = await supabase
+    .from('scripts')
+    .select('*')
+    .eq('slug', slug)
+    .single();
+
+  if (error || !script) {
     res.setHeader('Content-Type', 'text/plain; charset=utf-8');
     return res.status(404).send('-- Script not found');
   }
 
-  const script = await kv.get(`script:${id}`);
-  if (!script) {
-    res.setHeader('Content-Type', 'text/plain; charset=utf-8');
-    return res.status(404).send('-- Script not found');
-  }
-
-  script.loadCount = (script.loadCount || 0) + 1;
-  await kv.set(`script:${id}`, script);
+  await supabase
+    .from('scripts')
+    .update({ load_count: (script.load_count || 0) + 1 })
+    .eq('id', script.id);
 
   res.setHeader('Content-Type', 'text/plain; charset=utf-8');
   res.setHeader('Cache-Control', 'public, max-age=300');

@@ -1,11 +1,4 @@
-import { kv } from '@vercel/kv';
-import { randomUUID } from 'crypto';
-
-function checkAuth(req) {
-  const auth = req.headers.authorization || '';
-  const expected = 'Basic ' + btoa(process.env.ADMIN_PASSWORD || '');
-  return auth === expected;
-}
+import supabase from './_lib.js';
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -15,13 +8,22 @@ export default async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(200).end();
 
   if (req.method === 'GET') {
-    const keys = await kv.keys('script:*');
-    const scripts = [];
-    for (const key of keys) {
-      const s = await kv.get(key);
-      if (s) scripts.push({ id: s.id, name: s.name, slug: s.slug, description: s.description, created: s.created, loadCount: s.loadCount || 0 });
-    }
-    scripts.sort((a, b) => new Date(b.created) - new Date(a.created));
+    const { data, error } = await supabase
+      .from('scripts')
+      .select('id, name, slug, description, created, load_count')
+      .order('created', { ascending: false });
+
+    if (error) return res.status(500).json({ error: error.message });
+
+    const scripts = (data || []).map(s => ({
+      id: s.id,
+      name: s.name,
+      slug: s.slug,
+      description: s.description,
+      created: s.created,
+      loadCount: s.load_count || 0
+    }));
+
     return res.json(scripts);
   }
 
@@ -32,17 +34,30 @@ export default async function handler(req, res) {
     if (!name || !code) return res.status(400).json({ error: 'Name and code required' });
 
     const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
-    const existing = await kv.get(`slug:${slug}`);
+
+    const { data: existing } = await supabase
+      .from('scripts')
+      .select('id')
+      .eq('slug', slug)
+      .single();
+
     if (existing) return res.status(409).json({ error: 'Script name already exists' });
 
-    const id = randomUUID();
-    const script = { id, name, slug, description: description || '', code, created: new Date().toISOString(), loadCount: 0 };
+    const { data, error } = await supabase
+      .from('scripts')
+      .insert({ name, slug, description: description || '', code, load_count: 0 })
+      .select('id, slug, name')
+      .single();
 
-    await kv.set(`script:${id}`, script);
-    await kv.set(`slug:${slug}`, id);
-
-    return res.json({ id, slug, name });
+    if (error) return res.status(500).json({ error: error.message });
+    return res.json(data);
   }
 
   res.status(405).end();
+}
+
+function checkAuth(req) {
+  const auth = req.headers.authorization || '';
+  const expected = 'Basic ' + btoa(process.env.ADMIN_PASSWORD || '');
+  return auth === expected;
 }
