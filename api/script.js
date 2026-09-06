@@ -1,7 +1,7 @@
 export default async function handler(req, res) {
   if (req.method !== 'GET') return res.status(405).end();
 
-  const baseUrl = 'https://4real-site.vercel.app';
+  const baseUrl = 'https://www.4realium.xyz';
 
   const lua = `-- 4realium | Auto Script Loader
 -- Detects your game and runs the correct script

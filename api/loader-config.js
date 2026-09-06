@@ -3,7 +3,7 @@ import supabase from './_lib.js';
 export default async function handler(req, res) {
   if (req.method !== 'GET') return res.status(405).end();
 
-  const baseUrl = 'https://4real-site.vercel.app';
+  const baseUrl = 'https://www.4realium.xyz';
 
   const { data, error } = await supabase
     .from('scripts')
