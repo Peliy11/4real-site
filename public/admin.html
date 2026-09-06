@@ -85,7 +85,7 @@
       if (!pw) return;
       ADMIN_KEY = btoa(pw);
 
-      fetch('/api/scripts', { headers: { 'Authorization': 'Basic ' + ADMIN_KEY } })
+      fetch('/api/auth', { method: 'POST', headers: { 'Authorization': 'Basic ' + ADMIN_KEY } })
         .then(r => { if (r.ok) { document.getElementById('login-screen').style.display = 'none'; document.getElementById('admin-panel').style.display = 'block'; loadManageList(); } else { document.getElementById('login-error').style.display = 'block'; } })
         .catch(() => { document.getElementById('login-error').style.display = 'block'; });
     }
