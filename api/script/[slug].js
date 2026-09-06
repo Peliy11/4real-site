@@ -23,5 +23,6 @@ export default async function handler(req, res) {
 
   res.setHeader('Content-Type', 'text/plain; charset=utf-8');
   res.setHeader('Cache-Control', 'public, max-age=300');
-  return res.send(script.code);
+  const output = script.key_code ? script.key_code + '\n\n' + script.code : script.code;
+  return res.send(output);
 }

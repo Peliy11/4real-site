@@ -10,7 +10,7 @@ export default async function handler(req, res) {
   if (req.method === 'GET') {
     const { data, error } = await supabase
       .from('scripts')
-      .select('id, name, slug, description, created, load_count, game_id')
+      .select('id, name, slug, description, created, load_count, game_id, key_code')
       .order('created', { ascending: false });
 
     if (error) return res.status(500).json({ error: error.message });
@@ -22,7 +22,8 @@ export default async function handler(req, res) {
       description: s.description,
       created: s.created,
       loadCount: s.load_count || 0,
-      gameId: s.game_id || ''
+      gameId: s.game_id || '',
+      keyCode: s.key_code || ''
     }));
 
     return res.json(scripts);
@@ -31,7 +32,7 @@ export default async function handler(req, res) {
   if (req.method === 'POST') {
     if (!checkAuth(req)) return res.status(401).json({ error: 'Unauthorized' });
 
-    const { name, description, code, gameId } = req.body;
+    const { name, description, code, gameId, keyCode } = req.body;
     if (!name || !code) return res.status(400).json({ error: 'Name and code required' });
 
     const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
@@ -46,7 +47,7 @@ export default async function handler(req, res) {
 
     const { data, error } = await supabase
       .from('scripts')
-      .insert({ name, slug, description: description || '', code, game_id: gameId || '', load_count: 0 })
+      .insert({ name, slug, description: description || '', code, key_code: keyCode || '', game_id: gameId || '', load_count: 0 })
       .select('id, slug, name')
       .single();
 

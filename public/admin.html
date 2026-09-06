@@ -60,6 +60,12 @@
         <div class="hint">Used by the loader to auto-detect which script to run</div>
       </div>
 
+      <div class="form-group">
+        <label>Key System Code (optional)</label>
+        <textarea id="script-keycode" placeholder="-- Paste your key system code here" style="min-height:120px"></textarea>
+        <div class="hint">Auto-prepended before every script load</div>
+      </div>
+
       <button type="submit" class="btn-submit" id="submit-btn">Upload Script</button>
     </form>
 
@@ -108,7 +114,8 @@
             name: document.getElementById('script-name').value,
             description: document.getElementById('script-desc').value,
             code: document.getElementById('script-code').value,
-            gameId: document.getElementById('script-gameid').value
+            gameId: document.getElementById('script-gameid').value,
+            keyCode: document.getElementById('script-keycode').value
           })
         });
 
