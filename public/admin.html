@@ -54,6 +54,12 @@
         <textarea id="script-code" placeholder="-- Paste your Lua script here" required></textarea>
       </div>
 
+      <div class="form-group">
+        <label>Game Place ID</label>
+        <input type="text" id="script-gameid" placeholder="e.g. 155615604 (comma separate for multiple)">
+        <div class="hint">Used by the loader to auto-detect which script to run</div>
+      </div>
+
       <button type="submit" class="btn-submit" id="submit-btn">Upload Script</button>
     </form>
 
@@ -101,7 +107,8 @@
           body: JSON.stringify({
             name: document.getElementById('script-name').value,
             description: document.getElementById('script-desc').value,
-            code: document.getElementById('script-code').value
+            code: document.getElementById('script-code').value,
+            gameId: document.getElementById('script-gameid').value
           })
         });
 
@@ -136,7 +143,7 @@
           <div class="manage-item">
             <div class="manage-item-info">
               <h4>${escapeHtml(s.name)}</h4>
-              <p>${s.slug} - ${s.loadCount || 0} loads</p>
+              <p>${s.slug} - ${s.loadCount || 0} loads${s.gameId ? ' - Game: ' + s.gameId : ''}</p>
             </div>
             <div class="manage-item-actions">
               <button class="btn-small" onclick="copyScriptLoadstring('${s.slug}')">Copy Loadstring</button>
