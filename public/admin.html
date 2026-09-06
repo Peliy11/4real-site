@@ -61,9 +61,14 @@
       </div>
 
       <div class="form-group">
-        <label>Key System Code (optional)</label>
-        <textarea id="script-keycode" placeholder="-- Paste your key system code here" style="min-height:120px"></textarea>
-        <div class="hint">Auto-prepended before every script load</div>
+        <label>Key System</label>
+        <select id="script-key-select" style="width:100%;padding:12px 16px;background:var(--bg-elevated);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-size:14px;font-family:inherit;outline:none;margin-bottom:8px">
+          <option value="">None</option>
+          <option value="4realium">4realium Key System</option>
+          <option value="custom">Custom Key System</option>
+        </select>
+        <textarea id="script-keycode" placeholder="Paste custom key system code here" style="min-height:120px;display:none"></textarea>
+        <div class="hint">4realium key = loads from your GitHub repo</div>
       </div>
 
       <button type="submit" class="btn-submit" id="submit-btn">Upload Script</button>
@@ -101,10 +106,23 @@
       slugPreview.textContent = slug || 'your-script';
     });
 
+    const keySelect = document.getElementById('script-key-select');
+    const keyTextarea = document.getElementById('script-keycode');
+    keySelect.addEventListener('change', () => {
+      keyTextarea.style.display = keySelect.value === 'custom' ? 'block' : 'none';
+    });
+
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
       submitBtn.disabled = true;
       submitBtn.textContent = 'Uploading...';
+
+      let keyCode = '';
+      if (keySelect.value === '4realium') {
+        keyCode = 'loadstring(game:HttpGet("https://raw.githubusercontent.com/Peliy11/4realium/refs/heads/main/key.lua"))()';
+      } else if (keySelect.value === 'custom') {
+        keyCode = document.getElementById('script-keycode').value;
+      }
 
       try {
         const res = await fetch('/api/scripts', {
@@ -115,7 +133,7 @@
             description: document.getElementById('script-desc').value,
             code: document.getElementById('script-code').value,
             gameId: document.getElementById('script-gameid').value,
-            keyCode: document.getElementById('script-keycode').value
+            keyCode: keyCode
           })
         });
 
