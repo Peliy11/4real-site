@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>4realium - Upload Script</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='45' fill='%23E91E8C'/><path d='M30 52 L44 66 L70 36' stroke='white' stroke-width='8' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="bg-glow"></div>
+  <div class="bg-glow glow-2"></div>
+
+  <nav>
+    <div class="nav-inner">
+      <a href="/" class="logo">
+        <div class="logo-icon">
+          <svg viewBox="0 0 100 100" width="28" height="28">
+            <circle cx="50" cy="50" r="45" fill="#E91E8C"/>
+            <path d="M30 52 L44 66 L70 36" stroke="white" stroke-width="8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <span>4realium</span>
+      </a>
+      <div class="nav-links">
+        <a href="/">Home</a>
+        <a href="#manage">Manage</a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="admin-page">
+    <h1>Upload Script</h1>
+    <p class="subtitle">Share your script with the community</p>
+
+    <form id="upload-form">
+      <div class="form-group">
+        <label>Script Name</label>
+        <input type="text" id="script-name" placeholder="e.g. My Awesome Script" required>
+        <div class="hint">This will be used in the URL: 4realium.xyz/script/<strong id="slug-preview">your-script</strong></div>
+      </div>
+
+      <div class="form-group">
+        <label>Description</label>
+        <input type="text" id="script-desc" placeholder="What does this script do?">
+      </div>
+
+      <div class="form-group">
+        <label>Script Code</label>
+        <textarea id="script-code" placeholder="-- Paste your Lua script here&#10;loadstring(game:HttpGet('...'))()" required></textarea>
+      </div>
+
+      <button type="submit" class="btn-primary" id="submit-btn">Upload Script</button>
+    </form>
+
+    <div class="manage-section" id="manage">
+      <h2>Manage Scripts</h2>
+      <div id="manage-list"></div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast"></div>
+
+  <script>
+    const nameInput = document.getElementById('script-name');
+    const slugPreview = document.getElementById('slug-preview');
+    const form = document.getElementById('upload-form');
+    const submitBtn = document.getElementById('submit-btn');
+    const manageList = document.getElementById('manage-list');
+
+    nameInput.addEventListener('input', () => {
+      const slug = nameInput.value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+      slugPreview.textContent = slug || 'your-script';
+    });
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Uploading...';
+
+      try {
+        const res = await fetch('/api/scripts', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: document.getElementById('script-name').value,
+            description: document.getElementById('script-desc').value,
+            code: document.getElementById('script-code').value
+          })
+        });
+
+        const data = await res.json();
+        if (res.ok) {
+          showToast('Script uploaded!');
+          form.reset();
+          slugPreview.textContent = 'your-script';
+          loadManageList();
+        } else {
+          showToast(data.error || 'Upload failed');
+        }
+      } catch (err) {
+        showToast('Network error');
+      }
+
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Upload Script';
+    });
+
+    async function loadManageList() {
+      try {
+        const res = await fetch('/api/scripts');
+        const scripts = await res.json();
+
+        if (scripts.length === 0) {
+          manageList.innerHTML = '<p style="color:var(--text-dim);font-size:14px;">No scripts uploaded yet.</p>';
+          return;
+        }
+
+        manageList.innerHTML = scripts.map(s => `
+          <div class="manage-script">
+            <div class="manage-script-info">
+              <h4>${escapeHtml(s.name)}</h4>
+              <p>${s.slug} - ${s.loadCount || 0} loads - ${timeAgo(s.created)}</p>
+            </div>
+            <div class="manage-script-actions">
+              <button class="btn-sm btn-copy-loadstring" onclick="copyScriptLoadstring('${s.slug}')">Copy Loadstring</button>
+              <button class="btn-danger" onclick="deleteScript('${s.id}')">Delete</button>
+            </div>
+          </div>
+        `).join('');
+      } catch (e) {
+        manageList.innerHTML = '<p style="color:var(--text-dim)">Failed to load</p>';
+      }
+    }
+
+    async function deleteScript(id) {
+      if (!confirm('Delete this script?')) return;
+      await fetch('/api/scripts/' + id, { method: 'DELETE' });
+      showToast('Script deleted');
+      loadManageList();
+    }
+
+    function copyScriptLoadstring(slug) {
+      const text = 'loadstring(game:HttpGet("4realium.xyz/script/' + slug + '"))()';
+      navigator.clipboard.writeText(text).then(() => showToast('Loadstring copied!'));
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      toast.textContent = msg;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 2500);
+    }
+
+    function escapeHtml(str) {
+      const div = document.createElement('div');
+      div.textContent = str;
+      return div.innerHTML;
+    }
+
+    function timeAgo(dateStr) {
+      const diff = Date.now() - new Date(dateStr).getTime();
+      const mins = Math.floor(diff / 60000);
+      if (mins < 1) return 'just now';
+      if (mins < 60) return mins + 'm ago';
+      const hours = Math.floor(mins / 60);
+      if (hours < 24) return hours + 'h ago';
+      const days = Math.floor(hours / 24);
+      if (days < 30) return days + 'd ago';
+      return new Date(dateStr).toLocaleDateString();
+    }
+
+    loadManageList();
+  </script>
+</body>
+</html>
