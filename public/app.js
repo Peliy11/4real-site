@@ -22,44 +22,30 @@ async function loadScripts() {
     }
 
     grid.innerHTML = scripts.map(s => `
-      <div class="script-card" onclick="copyScriptLoadstring('${s.slug}')">
+      <div class="script-card">
         <div class="script-card-top">
           <h3>${escapeHtml(s.name)}</h3>
           <span class="script-badge">${(s.loadCount || 0).toLocaleString()} loads</span>
         </div>
         <p>${escapeHtml(s.description || 'No description')}</p>
+        ${s.gameId ? `<p style="font-size:12px;color:var(--text-dim);margin-top:-8px">Game ID: ${escapeHtml(s.gameId)}</p>` : ''}
         <div class="script-card-bottom">
           <span class="script-date">${timeAgo(s.created)}</span>
           <button class="script-btn">Copy Loadstring</button>
         </div>
       </div>
     `).join('');
-
-    document.getElementById('example-slug').textContent = scripts[0].slug;
-    const bottom = document.getElementById('example-slug-bottom');
-    if (bottom) bottom.textContent = scripts[0].slug;
   } catch (e) {
     grid.innerHTML = '<div class="empty-state"><p>Failed to load scripts.</p></div>';
   }
 }
 
-function copyScriptLoadstring(slug) {
-  const text = `loadstring(game:HttpGet("4realium.xyz/script/${slug}"))()`;
-  navigator.clipboard.writeText(text).then(() => showToast('Loadstring copied!'));
-}
-
 function copyLoadstring() {
-  const slug = document.getElementById('example-slug').textContent;
-  if (slug === 'loading') return;
-  const text = `loadstring(game:HttpGet("4realium.xyz/script/${slug}"))()`;
-  navigator.clipboard.writeText(text).then(() => showToast('Loadstring copied!'));
+  navigator.clipboard.writeText('loadstring(game:HttpGet("https://4realium.xyz/script"))()').then(() => showToast('Loadstring copied!'));
 }
 
 function copyLoadstringBottom() {
-  const slug = document.getElementById('example-slug-bottom').textContent;
-  if (slug === 'loading') return;
-  const text = `loadstring(game:HttpGet("4realium.xyz/script/${slug}"))()`;
-  navigator.clipboard.writeText(text).then(() => showToast('Loadstring copied!'));
+  navigator.clipboard.writeText('loadstring(game:HttpGet("https://4realium.xyz/script"))()').then(() => showToast('Loadstring copied!'));
 }
 
 function showToast(msg) {

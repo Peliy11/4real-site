@@ -1,6 +1,6 @@
 {
   "rewrites": [
-    { "source": "/script/:slug", "destination": "/api/script/:slug" },
+    { "source": "/script", "destination": "/api/script.js" },
     { "source": "/loader", "destination": "/api/loader.js" }
   ]
 }
