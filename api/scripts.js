@@ -1,10 +1,16 @@
 import { kv } from '@vercel/kv';
 import { randomUUID } from 'crypto';
 
+function checkAuth(req) {
+  const auth = req.headers.authorization || '';
+  const expected = 'Basic ' + btoa(process.env.ADMIN_PASSWORD || '');
+  return auth === expected;
+}
+
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 
   if (req.method === 'OPTIONS') return res.status(200).end();
 
@@ -20,6 +26,8 @@ export default async function handler(req, res) {
   }
 
   if (req.method === 'POST') {
+    if (!checkAuth(req)) return res.status(401).json({ error: 'Unauthorized' });
+
     const { name, description, code } = req.body;
     if (!name || !code) return res.status(400).json({ error: 'Name and code required' });
 

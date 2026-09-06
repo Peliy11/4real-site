@@ -3,19 +3,16 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>4realium - Upload Script</title>
+  <title>4realium - Admin</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='45' fill='%23E91E8C'/><path d='M30 52 L44 66 L70 36' stroke='white' stroke-width='8' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div class="bg-glow"></div>
-  <div class="bg-glow glow-2"></div>
-
   <nav>
     <div class="nav-inner">
       <a href="/" class="logo">
         <div class="logo-icon">
-          <svg viewBox="0 0 100 100" width="28" height="28">
+          <svg viewBox="0 0 100 100" width="32" height="32">
             <circle cx="50" cy="50" r="45" fill="#E91E8C"/>
             <path d="M30 52 L44 66 L70 36" stroke="white" stroke-width="8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
@@ -24,20 +21,27 @@
       </a>
       <div class="nav-links">
         <a href="/">Home</a>
-        <a href="#manage">Manage</a>
       </div>
     </div>
   </nav>
 
-  <div class="admin-page">
+  <div id="login-screen" class="login-box">
+    <h1>Admin Access</h1>
+    <p>Enter the admin password to continue</p>
+    <input type="password" id="admin-password" placeholder="Password" onkeydown="if(event.key==='Enter')login()">
+    <div id="login-error" class="login-error">Wrong password</div>
+    <button class="btn-submit" onclick="login()">Log In</button>
+  </div>
+
+  <div id="admin-panel" class="admin-page" style="display:none">
     <h1>Upload Script</h1>
-    <p class="subtitle">Share your script with the community</p>
+    <p class="subtitle">Add scripts to the hub</p>
 
     <form id="upload-form">
       <div class="form-group">
         <label>Script Name</label>
-        <input type="text" id="script-name" placeholder="e.g. My Awesome Script" required>
-        <div class="hint">This will be used in the URL: 4realium.xyz/script/<strong id="slug-preview">your-script</strong></div>
+        <input type="text" id="script-name" placeholder="e.g. Blox Fruits Script" required>
+        <div class="hint">URL will be: 4realium.xyz/script/<strong id="slug-preview">your-script</strong></div>
       </div>
 
       <div class="form-group">
@@ -47,10 +51,10 @@
 
       <div class="form-group">
         <label>Script Code</label>
-        <textarea id="script-code" placeholder="-- Paste your Lua script here&#10;loadstring(game:HttpGet('...'))()" required></textarea>
+        <textarea id="script-code" placeholder="-- Paste your Lua script here" required></textarea>
       </div>
 
-      <button type="submit" class="btn-primary" id="submit-btn">Upload Script</button>
+      <button type="submit" class="btn-submit" id="submit-btn">Upload Script</button>
     </form>
 
     <div class="manage-section" id="manage">
@@ -62,6 +66,18 @@
   <div id="toast" class="toast"></div>
 
   <script>
+    let ADMIN_KEY = '';
+
+    function login() {
+      const pw = document.getElementById('admin-password').value;
+      if (!pw) return;
+      ADMIN_KEY = btoa(pw);
+
+      fetch('/api/scripts', { headers: { 'Authorization': 'Basic ' + ADMIN_KEY } })
+        .then(r => { if (r.ok) { document.getElementById('login-screen').style.display = 'none'; document.getElementById('admin-panel').style.display = 'block'; loadManageList(); } else { document.getElementById('login-error').style.display = 'block'; } })
+        .catch(() => { document.getElementById('login-error').style.display = 'block'; });
+    }
+
     const nameInput = document.getElementById('script-name');
     const slugPreview = document.getElementById('slug-preview');
     const form = document.getElementById('upload-form');
@@ -81,7 +97,7 @@
       try {
         const res = await fetch('/api/scripts', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json', 'Authorization': 'Basic ' + ADMIN_KEY },
           body: JSON.stringify({
             name: document.getElementById('script-name').value,
             description: document.getElementById('script-desc').value,
@@ -108,7 +124,7 @@
 
     async function loadManageList() {
       try {
-        const res = await fetch('/api/scripts');
+        const res = await fetch('/api/scripts', { headers: { 'Authorization': 'Basic ' + ADMIN_KEY } });
         const scripts = await res.json();
 
         if (scripts.length === 0) {
@@ -117,13 +133,13 @@
         }
 
         manageList.innerHTML = scripts.map(s => `
-          <div class="manage-script">
-            <div class="manage-script-info">
+          <div class="manage-item">
+            <div class="manage-item-info">
               <h4>${escapeHtml(s.name)}</h4>
-              <p>${s.slug} - ${s.loadCount || 0} loads - ${timeAgo(s.created)}</p>
+              <p>${s.slug} - ${s.loadCount || 0} loads</p>
             </div>
-            <div class="manage-script-actions">
-              <button class="btn-sm btn-copy-loadstring" onclick="copyScriptLoadstring('${s.slug}')">Copy Loadstring</button>
+            <div class="manage-item-actions">
+              <button class="btn-small" onclick="copyScriptLoadstring('${s.slug}')">Copy Loadstring</button>
               <button class="btn-danger" onclick="deleteScript('${s.id}')">Delete</button>
             </div>
           </div>
@@ -135,7 +151,7 @@
 
     async function deleteScript(id) {
       if (!confirm('Delete this script?')) return;
-      await fetch('/api/scripts/' + id, { method: 'DELETE' });
+      await fetch('/api/scripts/' + id, { method: 'DELETE', headers: { 'Authorization': 'Basic ' + ADMIN_KEY } });
       showToast('Script deleted');
       loadManageList();
     }
@@ -157,20 +173,6 @@
       div.textContent = str;
       return div.innerHTML;
     }
-
-    function timeAgo(dateStr) {
-      const diff = Date.now() - new Date(dateStr).getTime();
-      const mins = Math.floor(diff / 60000);
-      if (mins < 1) return 'just now';
-      if (mins < 60) return mins + 'm ago';
-      const hours = Math.floor(mins / 60);
-      if (hours < 24) return hours + 'h ago';
-      const days = Math.floor(hours / 24);
-      if (days < 30) return days + 'd ago';
-      return new Date(dateStr).toLocaleDateString();
-    }
-
-    loadManageList();
   </script>
 </body>
 </html>

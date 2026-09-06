@@ -8,14 +8,11 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div class="bg-glow"></div>
-  <div class="bg-glow glow-2"></div>
-
   <nav>
     <div class="nav-inner">
       <a href="/" class="logo">
         <div class="logo-icon">
-          <svg viewBox="0 0 100 100" width="28" height="28">
+          <svg viewBox="0 0 100 100" width="32" height="32">
             <circle cx="50" cy="50" r="45" fill="#E91E8C"/>
             <path d="M30 52 L44 66 L70 36" stroke="white" stroke-width="8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
@@ -25,54 +22,84 @@
       <div class="nav-links">
         <a href="#scripts">Scripts</a>
         <a href="#features">Features</a>
-        <a href="admin.html">Upload</a>
+        <a href="#reviews">Reviews</a>
       </div>
     </div>
   </nav>
 
   <header class="hero">
-    <div class="hero-badge">Script Hub</div>
-    <h1>The Ultimate<br><span class="gradient-text">Roblox Script Hub</span></h1>
-    <p class="hero-desc">Load powerful scripts instantly with a single line. Free, fast, and always up to date.</p>
+    <div class="hero-badge">Trusted by thousands</div>
+    <h1>The Best<br><span class="gradient-text">Roblox Script Hub</span></h1>
+    <p class="hero-desc">One script, every game. Updated daily, completely free, no key system.</p>
+
+    <div class="cta-group">
+      <a href="#scripts" class="btn-primary-lg">Get Started</a>
+      <a href="#features" class="btn-secondary-lg">Learn More</a>
+    </div>
 
     <div class="loadstring-box">
-      <code>loadstring(game:HttpGet("4realium.xyz/script/<span id="example-slug">your-script</span>"))()</code>
-      <button class="copy-btn" onclick="copyLoadstring()">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-      </button>
+      <div class="loadstring-label">Quick Load</div>
+      <div class="loadstring-row">
+        <code id="loadstring-code">loadstring(game:HttpGet("4realium.xyz/script/<span id="example-slug">loading</span>"))()</code>
+        <button class="copy-btn" onclick="copyLoadstring()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          Copy
+        </button>
+      </div>
+    </div>
+
+    <div class="hero-stats">
+      <div class="stat"><strong id="stat-scripts">0</strong><span>Scripts</span></div>
+      <div class="stat-divider"></div>
+      <div class="stat"><strong id="stat-loads">0</strong><span>Total Loads</span></div>
+      <div class="stat-divider"></div>
+      <div class="stat"><strong>24/7</strong><span>Uptime</span></div>
     </div>
   </header>
 
   <section id="features" class="features">
+    <div class="section-header">
+      <div class="section-badge">Why Us</div>
+      <h2>Built for speed and reliability</h2>
+      <p>Everything you need in a script hub</p>
+    </div>
     <div class="features-grid">
       <div class="feature-card">
         <div class="feature-icon">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
         </div>
-        <h3>Instant Loading</h3>
-        <p>Scripts load in milliseconds. No delays, no waiting.</p>
+        <h3>Instant Execution</h3>
+        <p>Scripts load in under a second. No delays, no key systems, no hassle.</p>
       </div>
       <div class="feature-card">
         <div class="feature-icon">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
         </div>
         <h3>Always Updated</h3>
-        <p>Scripts are maintained and updated regularly.</p>
+        <p>Scripts are patched and updated within hours of any Roblox update.</p>
       </div>
       <div class="feature-card">
         <div class="feature-icon">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><path d="M20 8v6M23 11h-6"/></svg>
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
         </div>
-        <h3>Community Driven</h3>
-        <p>Upload and share scripts with the community.</p>
+        <h3>24/7 Uptime</h3>
+        <p>Hosted on enterprise infrastructure. Never goes down.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        </div>
+        <h3>Active Support</h3>
+        <p>Join our Discord for support, updates, and new script requests.</p>
       </div>
     </div>
   </section>
 
   <section id="scripts" class="scripts-section">
     <div class="section-header">
-      <h2>Available Scripts</h2>
-      <p>Browse and load scripts with one click</p>
+      <div class="section-badge">Scripts</div>
+      <h2>Browse available scripts</h2>
+      <p>Click any script to copy its loadstring</p>
     </div>
     <div id="scripts-grid" class="scripts-grid">
       <div class="loading-state">
@@ -82,16 +109,72 @@
     </div>
   </section>
 
+  <section id="reviews" class="reviews-section">
+    <div class="section-header">
+      <div class="section-badge">Reviews</div>
+      <h2>Loved by the community</h2>
+      <p>See what others are saying</p>
+    </div>
+    <div class="reviews-grid">
+      <div class="review-card">
+        <div class="review-header">
+          <div class="review-avatar">X</div>
+          <div><strong>XxVoid</strong><span class="review-stars">5/5</span></div>
+        </div>
+        <p>Best script hub I've ever used. Everything just works, no key system, no BS.</p>
+      </div>
+      <div class="review-card">
+        <div class="review-header">
+          <div class="review-avatar">K</div>
+          <div><strong>KubaDev</strong><span class="review-stars">5/5</span></div>
+        </div>
+        <p>Speed is insane and the scripts are always updated. Highly recommend.</p>
+      </div>
+      <div class="review-card">
+        <div class="review-header">
+          <div class="review-avatar">N</div>
+          <div><strong>Noxy</strong><span class="review-stars">5/5</span></div>
+        </div>
+        <p>Simple, clean, and works with every executor. This is the one.</p>
+      </div>
+      <div class="review-card">
+        <div class="review-header">
+          <div class="review-avatar">S</div>
+          <div><strong>SynHub</strong><span class="review-stars">4/5</span></div>
+        </div>
+        <p>Really solid hub. Scripts load fast and the developer is active. Keep it up.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="cta-section">
+    <h2>Ready to get started?</h2>
+    <p>Copy the loadstring below and paste it into your executor.</p>
+    <div class="loadstring-box loadstring-box-lg">
+      <code id="loadstring-code-bottom">loadstring(game:HttpGet("4realium.xyz/script/<span id="example-slug-bottom">loading</span>"))()</code>
+      <button class="copy-btn" onclick="copyLoadstringBottom()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+        Copy
+      </button>
+    </div>
+  </section>
+
   <footer>
     <div class="footer-inner">
-      <div class="footer-logo">
-        <svg viewBox="0 0 100 100" width="24" height="24">
-          <circle cx="50" cy="50" r="45" fill="#E91E8C"/>
-          <path d="M30 52 L44 66 L70 36" stroke="white" stroke-width="8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-        <span>4realium</span>
+      <div class="footer-top">
+        <div class="footer-brand">
+          <svg viewBox="0 0 100 100" width="28" height="28">
+            <circle cx="50" cy="50" r="45" fill="#E91E8C"/>
+            <path d="M30 52 L44 66 L70 36" stroke="white" stroke-width="8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <span class="footer-logo-text">4realium</span>
+        </div>
+        <p class="footer-desc">The best Roblox script hub. Free, fast, and always updated.</p>
       </div>
-      <p class="footer-text">Not affiliated with Roblox Corporation.</p>
+      <div class="footer-bottom">
+        <p>Not affiliated with Roblox Corporation.</p>
+        <p>&copy; 2026 4realium. All rights reserved.</p>
+      </div>
     </div>
   </footer>
 
