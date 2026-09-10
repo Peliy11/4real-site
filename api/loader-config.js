@@ -16,7 +16,7 @@ export default async function handler(req, res) {
   (data || []).forEach(s => {
     const ids = s.game_id.split(',').map(id => id.trim()).filter(Boolean);
     const entry = {
-      url: `${baseUrl}/api/script/${s.slug}`
+      url: `${baseUrl}/api/script/${s.slug}?nokey=1`
     };
     if (s.key_code && s.key_code.trim()) {
       entry.key = `${baseUrl}/api/key/${s.slug}`;
