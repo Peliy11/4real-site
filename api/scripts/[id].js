@@ -27,7 +27,7 @@ export default async function handler(req, res) {
     const { data: existing } = await supabase.from('scripts').select('*').eq('id', id).single();
     if (!existing) return res.status(404).json({ error: 'Not found' });
 
-    const { name, description, code } = req.body;
+    const { name, description, code, gameId, keyCode } = req.body;
     const update = {};
 
     if (name) {
@@ -36,6 +36,8 @@ export default async function handler(req, res) {
     }
     if (description !== undefined) update.description = description;
     if (code) update.code = code;
+    if (gameId !== undefined) update.gameId = gameId;
+    if (keyCode !== undefined) update.keyCode = keyCode;
 
     const { error } = await supabase.from('scripts').update(update).eq('id', id);
     if (error) return res.status(500).json({ error: error.message });

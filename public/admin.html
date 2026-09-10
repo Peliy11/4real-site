@@ -34,8 +34,8 @@
   </div>
 
   <div id="admin-panel" class="admin-page" style="display:none">
-    <h1>Upload Script</h1>
-    <p class="subtitle">Add scripts to the hub</p>
+    <h1 id="form-title">Upload Script</h1>
+    <p class="subtitle" id="form-subtitle">Add scripts to the hub</p>
 
     <form id="upload-form">
       <div class="form-group">
@@ -72,6 +72,7 @@
       </div>
 
       <button type="submit" class="btn-submit" id="submit-btn">Upload Script</button>
+      <button type="button" class="btn-submit" id="cancel-btn" style="display:none;background:var(--bg-elevated);border:1px solid var(--border);margin-top:8px" onclick="cancelEdit()">Cancel Edit</button>
     </form>
 
     <div class="manage-section" id="manage">
@@ -84,6 +85,7 @@
 
   <script>
     let ADMIN_KEY = '';
+    let editingId = null;
 
     function login() {
       const pw = document.getElementById('admin-password').value;
@@ -99,11 +101,14 @@
     const slugPreview = document.getElementById('slug-preview');
     const form = document.getElementById('upload-form');
     const submitBtn = document.getElementById('submit-btn');
+    const cancelBtn = document.getElementById('cancel-btn');
     const manageList = document.getElementById('manage-list');
 
     nameInput.addEventListener('input', () => {
-      const slug = nameInput.value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
-      slugPreview.textContent = slug || 'your-script';
+      if (!editingId) {
+        const slug = nameInput.value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+        slugPreview.textContent = slug || 'your-script';
+      }
     });
 
     const keySelect = document.getElementById('script-key-select');
@@ -115,7 +120,7 @@
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
       submitBtn.disabled = true;
-      submitBtn.textContent = 'Uploading...';
+      submitBtn.textContent = editingId ? 'Saving...' : 'Uploading...';
 
       let keyCode = '';
       if (keySelect.value === '4realium') {
@@ -124,35 +129,81 @@
         keyCode = document.getElementById('script-keycode').value;
       }
 
+      const body = {
+        name: document.getElementById('script-name').value,
+        description: document.getElementById('script-desc').value,
+        code: document.getElementById('script-code').value,
+        gameId: document.getElementById('script-gameid').value,
+        keyCode: keyCode
+      };
+
       try {
-        const res = await fetch('/api/scripts', {
-          method: 'POST',
+        const url = editingId ? '/api/scripts/' + editingId : '/api/scripts';
+        const method = editingId ? 'PUT' : 'POST';
+        const res = await fetch(url, {
+          method,
           headers: { 'Content-Type': 'application/json', 'Authorization': 'Basic ' + ADMIN_KEY },
-          body: JSON.stringify({
-            name: document.getElementById('script-name').value,
-            description: document.getElementById('script-desc').value,
-            code: document.getElementById('script-code').value,
-            gameId: document.getElementById('script-gameid').value,
-            keyCode: keyCode
-          })
+          body: JSON.stringify(body)
         });
 
         const data = await res.json();
         if (res.ok) {
-          showToast('Script uploaded!');
+          showToast(editingId ? 'Script updated!' : 'Script uploaded!');
+          cancelEdit();
           form.reset();
           slugPreview.textContent = 'your-script';
           loadManageList();
         } else {
-          showToast(data.error || 'Upload failed');
+          showToast(data.error || 'Failed');
         }
       } catch (err) {
         showToast('Network error');
       }
 
       submitBtn.disabled = false;
-      submitBtn.textContent = 'Upload Script';
+      submitBtn.textContent = editingId ? 'Save Changes' : 'Upload Script';
     });
+
+    function cancelEdit() {
+      editingId = null;
+      document.getElementById('form-title').textContent = 'Upload Script';
+      document.getElementById('form-subtitle').textContent = 'Add scripts to the hub';
+      submitBtn.textContent = 'Upload Script';
+      cancelBtn.style.display = 'none';
+      slugPreview.textContent = 'your-script';
+    }
+
+    async function editScript(id) {
+      try {
+        const res = await fetch('/api/scripts/' + id, { headers: { 'Authorization': 'Basic ' + ADMIN_KEY } });
+        const s = await res.json();
+
+        editingId = id;
+        document.getElementById('form-title').textContent = 'Edit Script';
+        document.getElementById('form-subtitle').textContent = 'Update ' + s.name;
+        submitBtn.textContent = 'Save Changes';
+        cancelBtn.style.display = 'block';
+
+        document.getElementById('script-name').value = s.name || '';
+        document.getElementById('script-desc').value = s.description || '';
+        document.getElementById('script-code').value = s.code || '';
+        document.getElementById('script-gameid').value = s.gameId || '';
+
+        if (s.keyCode && s.keyCode.includes('github.com/Peliy11')) {
+          keySelect.value = '4realium';
+        } else if (s.keyCode) {
+          keySelect.value = 'custom';
+          keyTextarea.value = s.keyCode;
+          keyTextarea.style.display = 'block';
+        } else {
+          keySelect.value = '';
+        }
+
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      } catch (e) {
+        showToast('Failed to load script');
+      }
+    }
 
     async function loadManageList() {
       try {
@@ -171,7 +222,7 @@
               <p>${s.slug} - ${s.loadCount || 0} loads${s.gameId ? ' - Game: ' + s.gameId : ''}</p>
             </div>
             <div class="manage-item-actions">
-              <button class="btn-small" onclick="copyScriptLoadstring('${s.slug}')">Copy Loadstring</button>
+              <button class="btn-small" onclick="editScript('${s.id}')">Edit</button>
               <button class="btn-danger" onclick="deleteScript('${s.id}')">Delete</button>
             </div>
           </div>
@@ -186,11 +237,6 @@
       await fetch('/api/scripts/' + id, { method: 'DELETE', headers: { 'Authorization': 'Basic ' + ADMIN_KEY } });
       showToast('Script deleted');
       loadManageList();
-    }
-
-    function copyScriptLoadstring(slug) {
-      const text = 'loadstring(game:HttpGet("4realium.xyz/script/' + slug + '"))()';
-      navigator.clipboard.writeText(text).then(() => showToast('Loadstring copied!'));
     }
 
     function showToast(msg) {
