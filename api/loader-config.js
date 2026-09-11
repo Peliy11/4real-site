@@ -7,7 +7,7 @@ export default async function handler(req, res) {
 
   const { data, error } = await supabase
     .from('scripts')
-    .select('slug, game_id, key_code')
+    .select('slug, game_id')
     .not('game_id', 'eq', '');
 
   if (error) return res.status(500).json({ error: error.message });
@@ -16,11 +16,8 @@ export default async function handler(req, res) {
   (data || []).forEach(s => {
     const ids = s.game_id.split(',').map(id => id.trim()).filter(Boolean);
     const entry = {
-      url: `${baseUrl}/api/script/${s.slug}?nokey=1`
+      url: `${baseUrl}/api/script/${s.slug}`
     };
-    if (s.key_code && s.key_code.trim()) {
-      entry.key = `${baseUrl}/api/key/${s.slug}`;
-    }
     ids.forEach(id => { games[id] = entry; });
   });
 
